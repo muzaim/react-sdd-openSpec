@@ -2,6 +2,10 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'todos'
 
+export const MAX_TITLE_LENGTH = 120
+export const MAX_LOCATION_LENGTH = 100
+export const MAX_DESCRIPTION_LENGTH = 1000
+
 export const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical']
 
 export const ASSIGNEE_OPTIONS = [
@@ -47,20 +51,44 @@ export const PRIORITY_OPTIONS = [
   },
 ]
 
+export function normalizeTitle(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim().slice(0, MAX_TITLE_LENGTH)
+}
+
+export function normalizeDescription(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim().slice(0, MAX_DESCRIPTION_LENGTH)
+}
+
 export function normalizePriority(value) {
   return VALID_PRIORITIES.includes(value) ? value : 'medium'
 }
 
 export function normalizeLocation(value) {
-  return typeof value === 'string' ? value.trim() : ''
+  if (typeof value !== 'string') return ''
+  return value.trim().slice(0, MAX_LOCATION_LENGTH)
 }
 
 export function normalizeAssignee(value) {
-  return typeof value === 'string' ? value.trim() : ''
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  return ASSIGNEE_OPTIONS.includes(trimmed) ? trimmed : ''
 }
 
 export function normalizeCategory(value) {
-  return typeof value === 'string' ? value.trim() : ''
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  return CATEGORY_OPTIONS.includes(trimmed) ? trimmed : ''
+}
+
+export function normalizeCreatedAt(value) {
+  if (typeof value !== 'string') return new Date().toISOString()
+  const parsedDate = new Date(value)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return new Date().toISOString()
+  }
+  return parsedDate.toISOString()
 }
 
 export function getPriorityMeta(value) {
@@ -85,14 +113,20 @@ function loadTodosFromStorage() {
           item &&
           typeof item === 'object' &&
           typeof item.id === 'string' &&
-          typeof item.title === 'string'
+          item.id.trim().length > 0 &&
+          typeof item.title === 'string' &&
+          normalizeTitle(item.title).length > 0
       )
       .map((item) => ({
-        ...item,
+        id: item.id.trim(),
+        title: normalizeTitle(item.title),
+        description: normalizeDescription(item.description),
         priority: normalizePriority(item.priority),
         category: normalizeCategory(item.category),
         location: normalizeLocation(item.location),
         assignee: normalizeAssignee(item.assignee),
+        completed: Boolean(item.completed),
+        createdAt: normalizeCreatedAt(item.createdAt),
       }))
   } catch {
     return []
@@ -118,16 +152,16 @@ export function TodoProvider({ children }) {
     assignee = '',
     priority = 'medium',
   }) => {
-    const trimmedTitle = title.trim()
-    if (!trimmedTitle) return null
+    const normalizedTitle = normalizeTitle(title)
+    if (!normalizedTitle) return null
 
     const newTodo = {
       id:
         typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      title: trimmedTitle,
-      description: description.trim(),
+      title: normalizedTitle,
+      description: normalizeDescription(description),
       category: normalizeCategory(category),
       location: normalizeLocation(location),
       assignee: normalizeAssignee(assignee),
@@ -152,16 +186,18 @@ export function TodoProvider({ children }) {
     setTodos((prev) =>
       prev.map((todo) => {
         if (todo.id !== id) return todo
+        const nextTitle =
+          typeof updates.title === 'string'
+            ? normalizeTitle(updates.title)
+            : normalizeTitle(todo.title)
+        if (!nextTitle) return todo
         return {
-          ...todo,
-          title:
-            typeof updates.title === 'string'
-              ? updates.title.trim()
-              : todo.title,
+          id: todo.id,
+          title: nextTitle,
           description:
             typeof updates.description === 'string'
-              ? updates.description.trim()
-              : todo.description,
+              ? normalizeDescription(updates.description)
+              : normalizeDescription(todo.description),
           category:
             typeof updates.category === 'string'
               ? normalizeCategory(updates.category)
@@ -181,7 +217,8 @@ export function TodoProvider({ children }) {
           completed:
             typeof updates.completed === 'boolean'
               ? updates.completed
-              : todo.completed,
+              : Boolean(todo.completed),
+          createdAt: normalizeCreatedAt(todo.createdAt),
         }
       })
     )

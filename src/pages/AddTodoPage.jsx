@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ASSIGNEE_OPTIONS,
   CATEGORY_OPTIONS,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_LOCATION_LENGTH,
+  MAX_TITLE_LENGTH,
   PRIORITY_OPTIONS,
   useTodos,
 } from '../context/TodoContext.jsx'
@@ -18,6 +21,8 @@ export default function AddTodoPage() {
   const locationId = `${baseId}-location`
   const descId = `${baseId}-description`
   const titleErrorId = `${baseId}-title-error`
+  const locationErrorId = `${baseId}-location-error`
+  const descErrorId = `${baseId}-description-error`
 
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
@@ -26,21 +31,50 @@ export default function AddTodoPage() {
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
   const [titleError, setTitleError] = useState('')
+  const [locationError, setLocationError] = useState('')
+  const [descError, setDescError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validateTitle = (value) => {
-    if (!value.trim()) {
+    const trimmed = value.trim()
+    if (!trimmed) {
       setTitleError('Judul tugas wajib diisi dan tidak boleh hanya spasi.')
+      return false
+    }
+    if (trimmed.length > MAX_TITLE_LENGTH) {
+      setTitleError(`Judul tugas maksimal ${MAX_TITLE_LENGTH} karakter.`)
       return false
     }
     setTitleError('')
     return true
   }
 
+  const validateLocation = (value) => {
+    if (value.trim().length > MAX_LOCATION_LENGTH) {
+      setLocationError(`Lokasi maksimal ${MAX_LOCATION_LENGTH} karakter.`)
+      return false
+    }
+    setLocationError('')
+    return true
+  }
+
+  const validateDescription = (value) => {
+    if (value.trim().length > MAX_DESCRIPTION_LENGTH) {
+      setDescError(`Deskripsi maksimal ${MAX_DESCRIPTION_LENGTH} karakter.`)
+      return false
+    }
+    setDescError('')
+    return true
+  }
+
   const handleTitleChange = (e) => {
     const nextValue = e.target.value
     setTitle(nextValue)
-    if (titleError && nextValue.trim()) {
+    if (
+      titleError &&
+      nextValue.trim() &&
+      nextValue.trim().length <= MAX_TITLE_LENGTH
+    ) {
       setTitleError('')
     }
   }
@@ -53,7 +87,10 @@ export default function AddTodoPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!validateTitle(title)) {
+    const isTitleValid = validateTitle(title)
+    const isLocationValid = validateLocation(location)
+    const isDescValid = validateDescription(description)
+    if (!isTitleValid || !isLocationValid || !isDescValid) {
       return
     }
     setIsSubmitting(true)
@@ -93,6 +130,7 @@ export default function AddTodoPage() {
             name="title"
             type="text"
             required
+            maxLength={MAX_TITLE_LENGTH}
             value={title}
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
@@ -245,12 +283,34 @@ export default function AddTodoPage() {
               id={locationId}
               name="location"
               type="text"
+              maxLength={MAX_LOCATION_LENGTH}
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) => {
+                setLocation(e.target.value)
+                if (
+                  locationError &&
+                  e.target.value.trim().length <= MAX_LOCATION_LENGTH
+                ) {
+                  setLocationError('')
+                }
+              }}
+              aria-invalid={locationError ? 'true' : undefined}
+              aria-describedby={locationError ? locationErrorId : undefined}
               placeholder="Contoh: Kantor, Sudirman..."
               className="block min-h-12 w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-3.5 pl-10 text-base text-slate-900 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             />
           </div>
+          {locationError && (
+            <p
+              id={locationErrorId}
+              role="alert"
+              aria-live="polite"
+              className="mt-2 flex items-center gap-1.5 text-sm text-rose-600"
+            >
+              <span aria-hidden="true">!</span>
+              <span>{locationError}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -265,11 +325,33 @@ export default function AddTodoPage() {
             id={descId}
             name="description"
             rows={4}
+            maxLength={MAX_DESCRIPTION_LENGTH}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value)
+              if (
+                descError &&
+                e.target.value.trim().length <= MAX_DESCRIPTION_LENGTH
+              ) {
+                setDescError('')
+              }
+            }}
+            aria-invalid={descError ? 'true' : undefined}
+            aria-describedby={descError ? descErrorId : undefined}
             placeholder="Tambahkan rincian atau catatan tambahan..."
             className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
           />
+          {descError && (
+            <p
+              id={descErrorId}
+              role="alert"
+              aria-live="polite"
+              className="mt-2 flex items-center gap-1.5 text-sm text-rose-600"
+            >
+              <span aria-hidden="true">!</span>
+              <span>{descError}</span>
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
