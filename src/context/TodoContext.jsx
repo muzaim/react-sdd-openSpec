@@ -4,6 +4,14 @@ const STORAGE_KEY = 'todos'
 
 export const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical']
 
+export const ASSIGNEE_OPTIONS = [
+  'Budi Santoso',
+  'Siti Aminah',
+  'Rizky Pratama',
+  'Dewi Lestari',
+  'Andi Saputra',
+]
+
 export const PRIORITY_OPTIONS = [
   {
     value: 'low',
@@ -39,6 +47,10 @@ export function normalizeLocation(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+export function normalizeAssignee(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 export function getPriorityMeta(value) {
   const normalized = normalizePriority(value)
   return (
@@ -67,6 +79,7 @@ function loadTodosFromStorage() {
         ...item,
         priority: normalizePriority(item.priority),
         location: normalizeLocation(item.location),
+        assignee: normalizeAssignee(item.assignee),
       }))
   } catch {
     return []
@@ -88,6 +101,7 @@ export function TodoProvider({ children }) {
     title,
     description = '',
     location = '',
+    assignee = '',
     priority = 'medium',
   }) => {
     const trimmedTitle = title.trim()
@@ -101,6 +115,7 @@ export function TodoProvider({ children }) {
       title: trimmedTitle,
       description: description.trim(),
       location: normalizeLocation(location),
+      assignee: normalizeAssignee(assignee),
       priority: normalizePriority(priority),
       completed: false,
       createdAt: new Date().toISOString(),
@@ -136,6 +151,10 @@ export function TodoProvider({ children }) {
             typeof updates.location === 'string'
               ? normalizeLocation(updates.location)
               : normalizeLocation(todo.location),
+          assignee:
+            typeof updates.assignee === 'string'
+              ? normalizeAssignee(updates.assignee)
+              : normalizeAssignee(todo.assignee),
           priority:
             typeof updates.priority === 'string'
               ? normalizePriority(updates.priority)

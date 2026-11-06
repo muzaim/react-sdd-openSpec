@@ -2,18 +2,18 @@
 
 ## Context
 
-Aplikasi yang dibangun adalah Single Page Application (SPA) berbasis React JS dan Tailwind CSS tanpa backend atau database eksternal (lihat `proposal.md` - Why). Seluruh state persisten disimpan di `window.localStorage` dan diakses dari tiga halaman berbeda: List (`/`), Tambah (`/add`), dan Detail (`/todo/:id`). Setiap tugas memiliki tingkat prioritas (`low`, `medium`, `high`, `critical`) yang ditampilkan sebagai badge dan dapat difilter melalui combobox di Halaman List, serta atribut lokasi (`location`: string) yang ditampilkan bersama icon maps/pin di Halaman List dan Detail.
+Aplikasi yang dibangun adalah Single Page Application (SPA) berbasis React JS dan Tailwind CSS tanpa backend atau database eksternal (lihat `proposal.md` - Why). Seluruh state persisten disimpan di `window.localStorage` dan diakses dari tiga halaman berbeda: List (`/`), Tambah (`/add`), dan Detail (`/todo/:id`). Setiap tugas memiliki tingkat prioritas (`low`, `medium`, `high`, `critical`) yang ditampilkan sebagai badge dan dapat difilter melalui combobox di Halaman List, atribut lokasi (`location`: string) yang ditampilkan bersama icon maps/pin, serta atribut penanggung jawab (`assignee`: string) yang dipilih melalui combobox berisi 5 nama Indonesia.
 
 ## Goals / Non-Goals
 
 **Goals:**
 - Menyediakan arsitektur frontend yang ringan, modular, dan mudah dipelihara untuk 3 rute halaman.
-- Menjaga sinkronisasi state React dengan `localStorage` secara konsisten dan tahan terhadap data korup (`JSON.parse` error handling) maupun data lama yang belum memiliki atribut `priority` atau `location`.
-- Menghadirkan antarmuka minimalis dan elegan dengan hierarki tipografi yang jelas, badge prioritas yang mudah dipindai, icon maps pada informasi lokasi, combobox filter yang ringkas, dan responsif di layar mobile maupun desktop.
+- Menjaga sinkronisasi state React dengan `localStorage` secara konsisten dan tahan terhadap data korup (`JSON.parse` error handling) maupun data lama yang belum memiliki atribut `priority`, `location`, atau `assignee`.
+- Menghadirkan antarmuka minimalis dan elegan dengan hierarki tipografi yang jelas, badge prioritas yang mudah dipindai, icon maps pada informasi lokasi, combobox penanggung jawab dengan 5 nama Indonesia, combobox filter prioritas yang ringkas, dan responsif di layar mobile maupun desktop.
 
 **Non-Goals:**
 - Autentikasi pengguna atau sinkronisasi lintas perangkat (cloud/backend).
-- Integrasi SDK peta interaktif berat (seperti Google Maps JS SDK / Mapbox) karena kebutuhan lokasi cukup berupa teks string dengan icon maps.
+- Manajemen pengguna dinamis (CRUD daftar orang) karena kebutuhan penanggung jawab cukup menggunakan 5 nama Indonesia yang telah disiapkan di combobox.
 - State management library eksternal yang berat (seperti Redux).
 
 ## Decisions
@@ -31,17 +31,20 @@ Aplikasi yang dibangun adalah Single Page Application (SPA) berbasis React JS da
     "title": "string",
     "description": "string",
     "location": "string",
+    "assignee": "string",
     "priority": "low | medium | high | critical",
     "completed": false,
     "createdAt": "string (ISO-8601)"
   }
   ```
-- **Kompatibilitas Data Lama**: Saat memuat dari `localStorage`, jika `priority` tidak termasuk dalam `['low', 'medium', 'high', 'critical']`, sistem menormalisasinya menjadi `'medium'`; jika `location` bukan string, sistem menormalisasinya menjadi `''`.
+- **Opsi Penanggung Jawab (`ASSIGNEE_OPTIONS`)**:
+  `['Budi Santoso', 'Siti Aminah', 'Rizky Pratama', 'Dewi Lestari', 'Andi Saputra']`, dengan opsi awal kosong `""` (`"-- Pilih --"`).
+- **Kompatibilitas Data Lama**: Saat memuat dari `localStorage`, jika `priority` tidak termasuk dalam `['low', 'medium', 'high', 'critical']`, sistem menormalisasinya menjadi `'medium'`; jika `location` atau `assignee` bukan string, sistem menormalisasinya menjadi `''` (dibiarkan kosong).
 
-### 3. Filter Combobox, Informasi Lokasi dengan Icon Maps, & Alur Halaman Detail
+### 3. Filter Combobox, Informasi Lokasi & Penanggung Jawab, serta Alur Halaman Detail
 - **Keputusan**:
-  - **Halaman List (`/`)**: Menampilkan seluruh item todo secara default dengan kontrol **combobox (`<select>`)** untuk memfilter daftar berdasarkan tingkat prioritas (`Semua Priority`, `Low`, `Medium`, `High`, `Critical`). Setiap item todo yang memiliki nilai `location` menampilkan **icon maps/pin SVG** di samping teks lokasinya.
-  - **Halaman Detail (`/todo/:id`)**: Menampilkan informasi todo secara bersih (Mode Lihat) lengkap dengan badge status selesai, badge prioritas, serta lokasi (dilengkapi icon maps), disertai aksi cepat untuk toggle status selesai, tombol Edit, dan tombol Hapus. Saat tombol Edit ditekan, tampilan beralih ke Mode Edit pada halaman yang sama (form input judul, pilihan prioritas, input lokasi, textarea deskripsi, dan toggle status).
+  - **Halaman List (`/`)**: Menampilkan seluruh item todo secara default dengan satu kontrol **combobox (`<select>`)** khusus untuk memfilter daftar berdasarkan tingkat prioritas (`Semua Priority`, `Low`, `Medium`, `High`, `Critical`). Setiap kartu todo yang memiliki nilai `assignee` atau `location` menampilkan ikon user SVG + nama penanggung jawab dan **icon maps/pin SVG** + teks lokasi.
+  - **Halaman Detail (`/todo/:id`)**: Menampilkan informasi todo secara bersih (Mode Lihat) lengkap dengan badge status selesai, badge prioritas, nama penanggung jawab, serta lokasi (dilengkapi icon maps), disertai aksi cepat untuk toggle status selesai, tombol Edit, dan tombol Hapus. Saat tombol Edit ditekan, tampilan beralih ke Mode Edit pada halaman yang sama (form input judul, pilihan prioritas, combobox penanggung jawab, input lokasi, textarea deskripsi, dan toggle status).
 
 ### 4. Sistem Desain Minimalis & Elegan (Tailwind CSS)
 - **Keputusan**:
@@ -51,11 +54,11 @@ Aplikasi yang dibangun adalah Single Page Application (SPA) berbasis React JS da
     - `medium`: `bg-sky-50 text-sky-700 ring-sky-200` (biru tenang)
     - `high`: `bg-amber-50 text-amber-700 ring-amber-200` (oranye hangat)
     - `critical`: `bg-rose-50 text-rose-700 ring-rose-200` (merah tegas)
-  - **Icon Maps**: Menggunakan inline SVG *map-pin* minimalis (`w-3.5 h-3.5`) dengan `aria-hidden="true"` berdampingan dengan teks lokasi agar ringan tanpa dependensi paket ikon tambahan.
+  - **Icon Maps & User**: Menggunakan inline SVG *map-pin* dan *user* minimalis (`w-3.5 h-3.5`) dengan `aria-hidden="true"` berdampingan dengan teks lokasi dan nama penanggung jawab agar ringan tanpa dependensi paket ikon tambahan.
   - **Permukaan & Elevasi**: Kartu putih (`bg-white`) di atas latar `bg-slate-50` dengan border tipis (`border-slate-200/80`) dan bayangan sangat halus (`shadow-xs`/`shadow-sm`).
 
 ## Risks / Trade-offs
 
-- **[Risk] Data `localStorage` rusak atau berasal dari versi sebelum adanya field `priority` dan `location`** → **Mitigation**: Bungkus `JSON.parse` di dalam blok `try/catch` dan berikan nilai default `priority: "medium"` serta `location: ""` untuk item yang belum memiliki field tersebut.
-- **[Risk] Kapasitas `localStorage` terbatas (~5MB)** → **Mitigation**: Karena hanya menyimpan teks judul, lokasi, deskripsi, dan string prioritas, batas ini sangat mencukupi untuk ribuan item todo teks.
+- **[Risk] Data `localStorage` rusak atau berasal dari versi sebelum adanya field `priority`, `location`, dan `assignee`** → **Mitigation**: Bungkus `JSON.parse` di dalam blok `try/catch` dan berikan nilai default `priority: "medium"`, `location: ""`, serta `assignee: ""` untuk item yang belum memiliki field tersebut.
+- **[Risk] Kapasitas `localStorage` terbatas (~5MB)** → **Mitigation**: Karena hanya menyimpan teks ringkas, batas ini sangat mencukupi untuk ribuan item todo.
 - **[Risk] Pengguna mengakses `/todo/:id` yang sudah dihapus atau tidak valid** → **Mitigation**: Tampilkan tampilan *Not Found* yang rapi di Halaman Detail beserta tombol kembali ke Halaman List (`/`).

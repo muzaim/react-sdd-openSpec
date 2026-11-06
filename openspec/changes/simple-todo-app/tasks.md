@@ -34,3 +34,9 @@
 - [x] 7.1 Perbarui `TodoContext` (`src/context/TodoContext.jsx`) untuk menyimpan dan memperbarui field `location` (string) dengan fallback `""` pada data lama di `localStorage`, lalu verifikasi data lokasi tersimpan dengan benar.
 - [x] 7.2 Perbarui Halaman Tambah (`src/pages/AddTodoPage.jsx`) dan Halaman Detail (`src/pages/TodoDetailPage.jsx`) untuk menambahkan input teks lokasi serta menampilkan lokasi dilengkapi icon maps di Halaman Detail, lalu verifikasi penambahan dan pengeditan lokasi berhasil.
 - [x] 7.3 Perbarui Halaman List (`src/pages/TodoListPage.jsx`) untuk menampilkan informasi lokasi beserta icon maps/pin SVG pada setiap kartu item todo, lalu verifikasi tampilan dan `npm run build` berjalan sukses tanpa error.
+
+## 8. Penambahan Fitur Penanggung Jawab (Assignee)
+
+- [x] 8.1 Perbarui `TodoContext` (`src/context/TodoContext.jsx`) dengan daftar 5 nama Indonesia (`ASSIGNEE_OPTIONS`) serta dukungan penyimpanan dan pembaruan field `assignee` (default `""` untuk opsi belum dipilih dan data lama di `localStorage`), lalu verifikasi data tersimpan dengan benar.
+- [x] 8.2 Perbarui Halaman Tambah (`src/pages/AddTodoPage.jsx`) dan Halaman Detail (`src/pages/TodoDetailPage.jsx`) untuk menambahkan combobox (`<select>`) Penanggung Jawab dengan opsi awal `"-- Pilih --"` (`""`) dan 5 nama Indonesia, serta menampilkan penanggung jawab di Mode Lihat Halaman Detail.
+- [x] 8.3 Perbarui Halaman List (`src/pages/TodoListPage.jsx`) untuk menampilkan nama penanggung jawab beserta icon user SVG pada kartu item todo yang memiliki `assignee`, lalu verifikasi tampilan dan `npm run build` berjalan sukses tanpa error.

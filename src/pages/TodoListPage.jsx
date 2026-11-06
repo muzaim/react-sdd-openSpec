@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   PRIORITY_OPTIONS,
   getPriorityMeta,
+  normalizeAssignee,
   normalizeLocation,
   normalizePriority,
   useTodos,
@@ -118,6 +119,7 @@ export default function TodoListPage() {
           {filteredTodos.map((todo) => {
             const checkboxId = `todo-check-${todo.id}`
             const priorityMeta = getPriorityMeta(todo.priority)
+            const todoAssignee = normalizeAssignee(todo.assignee)
             const todoLocation = normalizeLocation(todo.location)
             return (
               <li
@@ -179,6 +181,28 @@ export default function TodoListPage() {
                   )}
 
                   <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                    {todoAssignee && (
+                      <span
+                        className={`inline-flex items-center gap-1 font-medium ${
+                          todo.completed ? 'text-slate-400' : 'text-slate-600'
+                        }`}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5 shrink-0 text-slate-400"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        <span className="truncate">{todoAssignee}</span>
+                      </span>
+                    )}
                     {todoLocation && (
                       <span
                         className={`inline-flex items-center gap-1 font-medium ${

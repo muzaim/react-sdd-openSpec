@@ -1,8 +1,10 @@
 import { useId, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
+  ASSIGNEE_OPTIONS,
   PRIORITY_OPTIONS,
   getPriorityMeta,
+  normalizeAssignee,
   normalizeLocation,
   normalizePriority,
   useTodos,
@@ -26,6 +28,7 @@ export default function TodoDetailPage() {
   const baseId = useId()
   const titleId = `${baseId}-edit-title`
   const priorityId = `${baseId}-edit-priority`
+  const assigneeId = `${baseId}-edit-assignee`
   const locationId = `${baseId}-edit-location`
   const descId = `${baseId}-edit-description`
   const statusId = `${baseId}-edit-status`
@@ -36,6 +39,7 @@ export default function TodoDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [assignee, setAssignee] = useState('')
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
   const [completed, setCompleted] = useState(false)
@@ -73,10 +77,12 @@ export default function TodoDetailPage() {
 
   const priorityMeta = getPriorityMeta(todo.priority)
   const todoLocation = normalizeLocation(todo.location)
+  const todoAssignee = normalizeAssignee(todo.assignee)
 
   const startEdit = () => {
     setTitle(todo.title)
     setPriority(normalizePriority(todo.priority))
+    setAssignee(todoAssignee)
     setLocation(todoLocation)
     setDescription(todo.description || '')
     setCompleted(Boolean(todo.completed))
@@ -114,6 +120,7 @@ export default function TodoDetailPage() {
     updateTodo(todo.id, {
       title,
       priority,
+      assignee,
       location,
       description,
       completed,
@@ -231,40 +238,72 @@ export default function TodoDetailPage() {
 
             <div>
               <label
-                htmlFor={locationId}
+                htmlFor={assigneeId}
                 className="block text-sm font-medium text-slate-800"
               >
-                Lokasi{' '}
+                Penanggung Jawab{' '}
                 <span className="font-normal text-slate-400">(opsional)</span>
               </label>
               <div className="relative mt-1.5">
+                <select
+                  id={assigneeId}
+                  name="assignee"
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  className="block min-h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pr-10 pl-3.5 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                >
+                  <option value="">-- Pilih --</option>
+                  {ASSIGNEE_OPTIONS.map((person) => (
+                    <option key={person} value={person}>
+                      {person}
+                    </option>
+                  ))}
+                </select>
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-400"
+                  className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs text-slate-400"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
+                  &#9662;
                 </span>
-                <input
-                  id={locationId}
-                  name="location"
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Contoh: Kantor, Sudirman..."
-                  className="block min-h-12 w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-3.5 pl-10 text-base text-slate-900 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-                />
               </div>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor={locationId}
+              className="block text-sm font-medium text-slate-800"
+            >
+              Lokasi{' '}
+              <span className="font-normal text-slate-400">(opsional)</span>
+            </label>
+            <div className="relative mt-1.5">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-400"
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
+              <input
+                id={locationId}
+                name="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Contoh: Kantor, Sudirman..."
+                className="block min-h-12 w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-3.5 pl-10 text-base text-slate-900 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              />
             </div>
           </div>
 
@@ -357,22 +396,45 @@ export default function TodoDetailPage() {
               {todo.title}
             </h1>
 
-            {todoLocation && (
-              <div className="mt-2.5 inline-flex items-center gap-1.5 text-sm text-slate-600">
-                <svg
-                  aria-hidden="true"
-                  className="h-4 w-4 shrink-0 text-slate-400"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span>{todoLocation}</span>
+            {(todoAssignee || todoLocation) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                {todoAssignee && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>{todoAssignee}</span>
+                  </span>
+                )}
+
+                {todoLocation && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>{todoLocation}</span>
+                  </span>
+                )}
               </div>
             )}
 
