@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ASSIGNEE_OPTIONS,
+  CATEGORY_OPTIONS,
   PRIORITY_OPTIONS,
   useTodos,
 } from '../context/TodoContext.jsx'
@@ -12,6 +13,7 @@ export default function AddTodoPage() {
   const baseId = useId()
   const titleId = `${baseId}-title`
   const priorityId = `${baseId}-priority`
+  const categoryId = `${baseId}-category`
   const assigneeId = `${baseId}-assignee`
   const locationId = `${baseId}-location`
   const descId = `${baseId}-description`
@@ -19,6 +21,7 @@ export default function AddTodoPage() {
 
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [category, setCategory] = useState('')
   const [assignee, setAssignee] = useState('')
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
@@ -54,7 +57,7 @@ export default function AddTodoPage() {
       return
     }
     setIsSubmitting(true)
-    addTodo({ title, description, location, assignee, priority })
+    addTodo({ title, description, category, location, assignee, priority })
     navigate('/')
   }
 
@@ -116,7 +119,7 @@ export default function AddTodoPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div>
             <label
               htmlFor={priorityId}
@@ -135,6 +138,38 @@ export default function AddTodoPage() {
                 {PRIORITY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
+                  </option>
+                ))}
+              </select>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs text-slate-400"
+              >
+                &#9662;
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor={categoryId}
+              className="block text-sm font-medium text-slate-800"
+            >
+              Kategori{' '}
+              <span className="font-normal text-slate-400">(opsional)</span>
+            </label>
+            <div className="relative mt-1.5">
+              <select
+                id={categoryId}
+                name="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="block min-h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pr-10 pl-3.5 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              >
+                <option value="">-- Pilih --</option>
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
                   </option>
                 ))}
               </select>

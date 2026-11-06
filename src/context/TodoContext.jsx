@@ -12,6 +12,14 @@ export const ASSIGNEE_OPTIONS = [
   'Andi Saputra',
 ]
 
+export const CATEGORY_OPTIONS = [
+  'Pekerjaan',
+  'Pribadi',
+  'Belajar',
+  'Belanja',
+  'Kesehatan',
+]
+
 export const PRIORITY_OPTIONS = [
   {
     value: 'low',
@@ -51,6 +59,10 @@ export function normalizeAssignee(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+export function normalizeCategory(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 export function getPriorityMeta(value) {
   const normalized = normalizePriority(value)
   return (
@@ -78,6 +90,7 @@ function loadTodosFromStorage() {
       .map((item) => ({
         ...item,
         priority: normalizePriority(item.priority),
+        category: normalizeCategory(item.category),
         location: normalizeLocation(item.location),
         assignee: normalizeAssignee(item.assignee),
       }))
@@ -100,6 +113,7 @@ export function TodoProvider({ children }) {
   const addTodo = ({
     title,
     description = '',
+    category = '',
     location = '',
     assignee = '',
     priority = 'medium',
@@ -114,6 +128,7 @@ export function TodoProvider({ children }) {
           : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title: trimmedTitle,
       description: description.trim(),
+      category: normalizeCategory(category),
       location: normalizeLocation(location),
       assignee: normalizeAssignee(assignee),
       priority: normalizePriority(priority),
@@ -147,6 +162,10 @@ export function TodoProvider({ children }) {
             typeof updates.description === 'string'
               ? updates.description.trim()
               : todo.description,
+          category:
+            typeof updates.category === 'string'
+              ? normalizeCategory(updates.category)
+              : normalizeCategory(todo.category),
           location:
             typeof updates.location === 'string'
               ? normalizeLocation(updates.location)

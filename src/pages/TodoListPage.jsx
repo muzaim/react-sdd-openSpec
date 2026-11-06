@@ -1,9 +1,11 @@
 import { useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  CATEGORY_OPTIONS,
   PRIORITY_OPTIONS,
   getPriorityMeta,
   normalizeAssignee,
+  normalizeCategory,
   normalizeLocation,
   normalizePriority,
   useTodos,
@@ -33,9 +35,11 @@ export default function TodoListPage() {
   const { todos, toggleTodo } = useTodos()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedPriority, setSelectedPriority] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const statusFilterSelectId = useId()
   const filterSelectId = useId()
+  const categoryFilterSelectId = useId()
 
   const filteredTodos = todos.filter((todo) => {
     const matchesStatus =
@@ -48,7 +52,11 @@ export default function TodoListPage() {
       selectedPriority === 'all'
         ? true
         : normalizePriority(todo.priority) === selectedPriority
-    return matchesStatus && matchesPriority
+    const matchesCategory =
+      selectedCategory === 'all'
+        ? true
+        : normalizeCategory(todo.category) === selectedCategory
+    return matchesStatus && matchesPriority && matchesCategory
   })
 
   const totalPages = Math.max(1, Math.ceil(filteredTodos.length / ITEMS_PER_PAGE))
@@ -69,6 +77,11 @@ export default function TodoListPage() {
 
   function handlePriorityFilterChange(e) {
     setSelectedPriority(e.target.value)
+    setCurrentPage(1)
+  }
+
+  function handleCategoryFilterChange(e) {
+    setSelectedCategory(e.target.value)
     setCurrentPage(1)
   }
 
@@ -98,8 +111,8 @@ export default function TodoListPage() {
         </Link>
       </header>
 
-      {/* Combobox Filter Status & Priority */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* Combobox Filter Status, Priority & Kategori */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
           <label
             htmlFor={statusFilterSelectId}
@@ -160,6 +173,37 @@ export default function TodoListPage() {
             </span>
           </div>
         </div>
+
+        <div className="space-y-1.5">
+          <label
+            htmlFor={categoryFilterSelectId}
+            className="block text-xs font-medium text-slate-500"
+          >
+            Filter berdasarkan Kategori
+          </label>
+          <div className="relative">
+            <select
+              id={categoryFilterSelectId}
+              name="categoryFilter"
+              value={selectedCategory}
+              onChange={handleCategoryFilterChange}
+              className="block min-h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200/90 bg-white py-2 pr-9 pl-3.5 text-base text-slate-800 shadow-2xs transition hover:border-slate-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:text-sm"
+            >
+              <option value="all">Semua Kategori</option>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400"
+            >
+              &#9662;
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Todo List or Empty State */}
@@ -173,7 +217,7 @@ export default function TodoListPage() {
           <p className="mt-1 text-xs text-slate-500">
             {todos.length === 0
               ? 'Mulai dengan menambahkan tugas pertamamu.'
-              : 'Coba pilih "Semua Status" atau "Semua Priority" pada combobox di atas, atau tambahkan tugas baru.'}
+              : 'Coba pilih "Semua Status", "Semua Priority", atau "Semua Kategori" pada combobox di atas, atau tambahkan tugas baru.'}
           </p>
           {todos.length === 0 && (
             <Link
@@ -190,6 +234,7 @@ export default function TodoListPage() {
             {paginatedTodos.map((todo) => {
               const checkboxId = `todo-check-${todo.id}`
               const priorityMeta = getPriorityMeta(todo.priority)
+              const todoCategory = normalizeCategory(todo.category)
               const todoAssignee = normalizeAssignee(todo.assignee)
               const todoLocation = normalizeLocation(todo.location)
               return (
@@ -252,6 +297,28 @@ export default function TodoListPage() {
                     )}
 
                     <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                      {todoCategory && (
+                        <span
+                          className={`inline-flex items-center gap-1 font-medium ${
+                            todo.completed ? 'text-slate-400' : 'text-slate-600'
+                          }`}
+                        >
+                          <svg
+                            aria-hidden="true"
+                            className="h-3.5 w-3.5 shrink-0 text-slate-400"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                            <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                          </svg>
+                          <span className="truncate">{todoCategory}</span>
+                        </span>
+                      )}
                       {todoAssignee && (
                         <span
                           className={`inline-flex items-center gap-1 font-medium ${

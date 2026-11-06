@@ -4,29 +4,28 @@ schema: spec-driven
 # Add only constraints that should guide OpenSpec artifacts and workflows.
 # Include constraints an agent cannot infer by reading the code.
 # Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+context: |
+  Gunakan Bahasa Indonesia untuk seluruh artefak perencanaan (proposal, specs, design, dan tasks).
+
+  STANDAR KEAMANAN WAJIB (Security by Design):
+  - Validasi & Sanitasi Input: Semua input dari pengguna (formulir, query URL, parameter rute) wajib divalidasi tipe data, panjang karakter, dan formatnya sebelum diproses atau disimpan.
+  - Pencegahan XSS (Cross-Site Scripting): Dilarang merender input pengguna sebagai HTML mentah (seperti menggunakan `dangerouslySetInnerHTML`, `innerHTML`, atau `eval()`). Gunakan mekanisme auto-escaping bawaan React.
+  - Keamanan Penyimpanan Lokal (`localStorage`): Jangan pernah menyimpan data rahasia (password, token sensitif, atau API key) di `localStorage`. Saat membaca data dari `localStorage` (`JSON.parse`), wajib gunakan blok `try/catch` dan validasi struktur data untuk mencegah aplikasi crash akibat data yang rusak atau dimanipulasi (Client-Side Storage Tampering).
+  - Proteksi Parameter & Akses Rute: Setiap akses ke halaman detail atau aksi edit/hapus berdasarkan `:id` wajib memverifikasi keberadaan dan validitas ID tersebut secara aman.
+  - Manajemen Secret: Dilarang menaruh kredensial, API key, atau secret secara hardcoded di dalam source code.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  specs:
+    - Sertakan skenario validasi atau penolakan (negative/security scenario) untuk input yang kosong, tidak valid, atau dimanipulasi.
+  design:
+    - Jelaskan bagaimana validasi input dan keamanan penyimpanan data ditangani pada perubahan tersebut.
 
 # Per-operation guidance (optional)
 # Add advisory guidance for how apply and archive work should be conducted.
 # This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Pastikan seluruh perubahan kode mematuhi standar keamanan di project context (bebas celah XSS, unvalidated input, dan unhandled JSON parsing).

@@ -2,9 +2,11 @@ import { useId, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ASSIGNEE_OPTIONS,
+  CATEGORY_OPTIONS,
   PRIORITY_OPTIONS,
   getPriorityMeta,
   normalizeAssignee,
+  normalizeCategory,
   normalizeLocation,
   normalizePriority,
   useTodos,
@@ -28,6 +30,7 @@ export default function TodoDetailPage() {
   const baseId = useId()
   const titleId = `${baseId}-edit-title`
   const priorityId = `${baseId}-edit-priority`
+  const categoryId = `${baseId}-edit-category`
   const assigneeId = `${baseId}-edit-assignee`
   const locationId = `${baseId}-edit-location`
   const descId = `${baseId}-edit-description`
@@ -39,6 +42,7 @@ export default function TodoDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [category, setCategory] = useState('')
   const [assignee, setAssignee] = useState('')
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
@@ -76,12 +80,14 @@ export default function TodoDetailPage() {
   }
 
   const priorityMeta = getPriorityMeta(todo.priority)
+  const todoCategory = normalizeCategory(todo.category)
   const todoLocation = normalizeLocation(todo.location)
   const todoAssignee = normalizeAssignee(todo.assignee)
 
   const startEdit = () => {
     setTitle(todo.title)
     setPriority(normalizePriority(todo.priority))
+    setCategory(todoCategory)
     setAssignee(todoAssignee)
     setLocation(todoLocation)
     setDescription(todo.description || '')
@@ -120,6 +126,7 @@ export default function TodoDetailPage() {
     updateTodo(todo.id, {
       title,
       priority,
+      category,
       assignee,
       location,
       description,
@@ -205,7 +212,7 @@ export default function TodoDetailPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <div>
               <label
                 htmlFor={priorityId}
@@ -224,6 +231,38 @@ export default function TodoDetailPage() {
                   {PRIORITY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs text-slate-400"
+                >
+                  &#9662;
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor={categoryId}
+                className="block text-sm font-medium text-slate-800"
+              >
+                Kategori{' '}
+                <span className="font-normal text-slate-400">(opsional)</span>
+              </label>
+              <div className="relative mt-1.5">
+                <select
+                  id={categoryId}
+                  name="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="block min-h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pr-10 pl-3.5 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                >
+                  <option value="">-- Pilih --</option>
+                  {CATEGORY_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
                     </option>
                   ))}
                 </select>
@@ -396,8 +435,27 @@ export default function TodoDetailPage() {
               {todo.title}
             </h1>
 
-            {(todoAssignee || todoLocation) && (
+            {(todoCategory || todoAssignee || todoLocation) && (
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                {todoCategory && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+                      <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+                    </svg>
+                    <span>{todoCategory}</span>
+                  </span>
+                )}
+
                 {todoAssignee && (
                   <span className="inline-flex items-center gap-1.5">
                     <svg
