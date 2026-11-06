@@ -11,6 +11,12 @@ import {
 
 const ITEMS_PER_PAGE = 5
 
+const STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: 'Semua Status' },
+  { value: 'incomplete', label: 'Belum Selesai' },
+  { value: 'completed', label: 'Selesai' },
+]
+
 function formatDate(isoString) {
   try {
     return new Intl.DateTimeFormat('id-ID', {
@@ -25,13 +31,24 @@ function formatDate(isoString) {
 
 export default function TodoListPage() {
   const { todos, toggleTodo } = useTodos()
+  const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedPriority, setSelectedPriority] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const statusFilterSelectId = useId()
   const filterSelectId = useId()
 
   const filteredTodos = todos.filter((todo) => {
-    if (selectedPriority === 'all') return true
-    return normalizePriority(todo.priority) === selectedPriority
+    const matchesStatus =
+      selectedStatus === 'all'
+        ? true
+        : selectedStatus === 'completed'
+          ? Boolean(todo.completed)
+          : !todo.completed
+    const matchesPriority =
+      selectedPriority === 'all'
+        ? true
+        : normalizePriority(todo.priority) === selectedPriority
+    return matchesStatus && matchesPriority
   })
 
   const totalPages = Math.max(1, Math.ceil(filteredTodos.length / ITEMS_PER_PAGE))
@@ -44,6 +61,11 @@ export default function TodoListPage() {
 
   const completedCount = todos.filter((t) => t.completed).length
   const activeCount = todos.length - completedCount
+
+  function handleStatusFilterChange(e) {
+    setSelectedStatus(e.target.value)
+    setCurrentPage(1)
+  }
 
   function handlePriorityFilterChange(e) {
     setSelectedPriority(e.target.value)
@@ -76,35 +98,67 @@ export default function TodoListPage() {
         </Link>
       </header>
 
-      {/* Combobox Filter Priority */}
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-        <label
-          htmlFor={filterSelectId}
-          className="text-xs font-medium text-slate-500"
-        >
-          Filter berdasarkan Priority
-        </label>
-        <div className="relative sm:w-56">
-          <select
-            id={filterSelectId}
-            name="priorityFilter"
-            value={selectedPriority}
-            onChange={handlePriorityFilterChange}
-            className="block min-h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200/90 bg-white py-2 pr-9 pl-3.5 text-base text-slate-800 shadow-2xs transition hover:border-slate-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:text-sm"
+      {/* Combobox Filter Status & Priority */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label
+            htmlFor={statusFilterSelectId}
+            className="block text-xs font-medium text-slate-500"
           >
-            <option value="all">Semua Priority</option>
-            {PRIORITY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400"
+            Filter berdasarkan Status
+          </label>
+          <div className="relative">
+            <select
+              id={statusFilterSelectId}
+              name="statusFilter"
+              value={selectedStatus}
+              onChange={handleStatusFilterChange}
+              className="block min-h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200/90 bg-white py-2 pr-9 pl-3.5 text-base text-slate-800 shadow-2xs transition hover:border-slate-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:text-sm"
+            >
+              {STATUS_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400"
+            >
+              &#9662;
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label
+            htmlFor={filterSelectId}
+            className="block text-xs font-medium text-slate-500"
           >
-            &#9662;
-          </span>
+            Filter berdasarkan Priority
+          </label>
+          <div className="relative">
+            <select
+              id={filterSelectId}
+              name="priorityFilter"
+              value={selectedPriority}
+              onChange={handlePriorityFilterChange}
+              className="block min-h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200/90 bg-white py-2 pr-9 pl-3.5 text-base text-slate-800 shadow-2xs transition hover:border-slate-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:text-sm"
+            >
+              <option value="all">Semua Priority</option>
+              {PRIORITY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400"
+            >
+              &#9662;
+            </span>
+          </div>
         </div>
       </div>
 
@@ -114,12 +168,12 @@ export default function TodoListPage() {
           <p className="text-sm font-medium text-slate-700">
             {todos.length === 0
               ? 'Belum ada tugas hari ini'
-              : `Tidak ada tugas dengan prioritas "${getPriorityMeta(selectedPriority).label}"`}
+              : 'Tidak ada tugas yang sesuai dengan filter pilihanmu'}
           </p>
           <p className="mt-1 text-xs text-slate-500">
             {todos.length === 0
               ? 'Mulai dengan menambahkan tugas pertamamu.'
-              : 'Coba pilih "Semua Priority" pada combobox di atas atau tambahkan tugas baru.'}
+              : 'Coba pilih "Semua Status" atau "Semua Priority" pada combobox di atas, atau tambahkan tugas baru.'}
           </p>
           {todos.length === 0 && (
             <Link
